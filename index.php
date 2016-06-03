@@ -1,28 +1,15 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('error_reporting', E_ALL);
 
-// Construct the MongoDB Manager
-$manager = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+require_once __DIR__ . "/vendor/autoload.php";
 
-// Construct and execute the listDatabases command
-$listdatabases = new MongoDB\Driver\Command(["listDatabases" => 1]);
-$result        = $manager->executeCommand("admin", $listdatabases);
+$collection = (new MongoDB\Client)->demo->persons;
 
-/* The command returns a single result document, which contains the information
- * for all databases in a "databases" array field. */
-$databases     = current($result->toArray());
+$result = $collection->insertOne(['a'=>"123"]);
 
-foreach ($databases["databases"] as $database) {
-    echo $database->name, "\n";
+$person = $collection->find();
+echo '<pre>';
+var_dump($person);
 
-    // Construct and execute the listCollections command for each database
-    $listcollections = new MongoDB\Driver\Command(["listCollections" => 1]);
-    $result          = $manager->executeCommand($database->name, $listcollections);
 
-    /* The command returns a cursor, which we can iterate on to access
-     * information for each collection. */
-    $collections     = $result->toArray();
-
-    foreach ($collections as $collection) {
-        echo "\t * ", $collection->name, "\n";
-    }
-}

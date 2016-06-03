@@ -19,6 +19,7 @@ while (!$stopServer) {
 
 
     if(file_exists(__DIR__ . '/stop')) {
+        $stopServer = true;
         unlink(__DIR__ . '/stop');
         exit;
     }
