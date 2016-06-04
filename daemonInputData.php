@@ -1,13 +1,17 @@
 <?php
-$child_pid = pcntl_fork();
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+ini_set('display_errors', 'on');
+$childPid = pcntl_fork();
 
 /*
  * 0 - Дочернему
  * pid - родителю
  * */
-if ((bool)$child_pid) {
+if ((bool)$childPid) {
 
-    print $child_pid . "\n";
+    $fHandle = fopen('./'.basename(__FILE__, '.php').'.pid', 'w');
+    fwrite($fHandle, $childPid);
+    fclose($fHandle);
     exit;
 }
 
@@ -16,11 +20,8 @@ $stopServer = false;
 
 while (!$stopServer) {
 
-
-
-    if(file_exists(__DIR__ . '/stop')) {
-        $stopServer = true;
+    if(($stopServer = file_exists(__DIR__ . '/stop')) ) {
         unlink(__DIR__ . '/stop');
-        exit;
+        unlink(__DIR__ . '/'. basename(__FILE__, '.php').'.pid');
     }
 }
