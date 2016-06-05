@@ -1,5 +1,15 @@
 {
+    "name": "root/www",
+    "authors": [
+        {
+            "name": "sim",
+            "email": "sim7c6@gmail.com"
+        }
+    ],
     "require": {
-        "mongodb/mongodb": "^1.0.0"
+      "mongodb/mongodb": "^1.0.0",
+      "hoa/websocket": "^3.16",
+        "cboden/ratchet": "^0.3.5"
     }
+
 }
