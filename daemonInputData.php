@@ -56,8 +56,8 @@ while (!$stopServer && ($out = socket_read($socket, 1024, PHP_NORMAL_READ)) ) {
             "date" => $date
         ]);
 
-        $pid = file_get_contents('./ws.pid');
-        posix_kill($pid, SIGUSR1);
+        $pidWS = file_get_contents('./ws.pid');
+        posix_kill($pidWS, SIGUSR1);
 
     } catch (Exception $e) {
         var_dump($e);

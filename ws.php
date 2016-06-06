@@ -251,6 +251,7 @@ class DataSql {
     }
 
     function updateH1() {
+        var_dump($this->_lastH1);
         foreach($this->_lastH1 as $sym => $date) {
 
             $queryMinMax = "
@@ -408,6 +409,7 @@ class Ws implements MessageComponentInterface{
 
 
     function onOpen(ConnectionInterface $conn) {
+        echo "new connect\n";
         $this->clients[spl_object_hash($conn)] = $conn;
     }
 
@@ -475,10 +477,21 @@ class Ws implements MessageComponentInterface{
 
 }
 
-$server = IoServer::factory(
+class IoServerRedefined extends IoServer {
+    public static function factory(MessageComponentInterface $component, $port = 80, $address = '0.0.0.0') {
+        $loop   = React\EventLoop\Factory::create();
+        $socket = new React\Socket\Server($loop);
+        $socket->listen($port, $address);
+
+        return new static($component, $socket, $loop);
+    }
+}
+
+$app = new Ws(include(__DIR__ . '/config.php'), medoo);
+$server = IoServerRedefined::factory(
     new HttpServer(
         new WsServer(
-            new Ws(include(__DIR__ . '/config.php'), medoo)
+            $app
         )
     ),
     8889
@@ -492,13 +505,13 @@ $server = IoServer::factory(
  *
  * */
 
-$server->run();
-
 $fHandle = fopen('./'.basename(__FILE__, '.php').'.pid', 'w');
 fwrite($fHandle, posix_getpid());
 fclose($fHandle);
 
 //pcntl_signal(SIGUSR1, $app->onUpdateExternalData);
-pcntl_signal(SIGUSR1, function($sig){
-    echo 3333;
+pcntl_signal(SIGUSR1, function($sig) use ($app){
+    $app->onUpdateExternalData();
 });
+
+$server->run();
