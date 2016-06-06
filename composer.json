@@ -7,9 +7,9 @@
         }
     ],
     "require": {
-      "mongodb/mongodb": "^1.0.0",
       "hoa/websocket": "^3.16",
-        "cboden/ratchet": "^0.3.5"
+        "cboden/ratchet": "^0.3.5",
+        "catfan/Medoo": "^1.0"
     }
 
 }

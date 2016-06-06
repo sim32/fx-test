@@ -1,14 +1,9 @@
 <?php
-error_reporting(E_ALL); //Выводим все ошибки и предупреждения
-include __DIR__ . "/vendor/autoload.php";
-
-use Ratchet\MessageComponentInterface;
-use Ratchet\ConnectionInterface;
-use Ratchet\Server\IoServer;
-use Ratchet\Http\HttpServer;
-use Ratchet\WebSocket\WsServer;
-
 declare(ticks = 1);
+error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+ini_set('display_errors', 'on');
+require_once __DIR__ . "/vendor/autoload.php";
+$_conf = include_once(__DIR__ . '/config.php');
 
 class DataSql {
     private $_m1;
@@ -38,7 +33,7 @@ class DataSql {
     function initDb() {
         try {
 
-            $this->_dbInstance = new $this->_dbConnector([
+            $this->_dbInstance = new medoo([
                 'database_type' => $this->_appConfig->database_type,
                 'database_name' => $this->_appConfig->database_name,
                 'server' => $this->_appConfig->server,
@@ -392,113 +387,20 @@ class DataSql {
     }
 }
 
-
-class Ws implements MessageComponentInterface{
-    protected $clients;
-    protected $activeClientsConf;
-
-    protected $internalData;
-
-    public function __construct($_sonfig, $db) {
-        $this->clients = [];//new \SplObjectStorage;
-        $this->activeClientsConf = [];//new \SplObjectStorage;
-
-        $this->internalData = new DataSql($_sonfig, $db);
-    }
-
-
-    function onOpen(ConnectionInterface $conn) {
-        $this->clients[spl_object_hash($conn)] = $conn;
-    }
-
-
-    function onClose(ConnectionInterface $conn) {
-        unset($this->clients[spl_object_hash($conn)]);
-    }
-
-
-    function onError(ConnectionInterface $conn, \Exception $e) {
-        unset($this->clients[spl_object_hash($conn)]);;
-        $conn->close();
-    }
-
-
-    function onMessage(ConnectionInterface $from, $msg) {
-        $msg = json_decode($msg);
-        if(null == $msg) {
-            $from->send('wrong request');
-        } else {
-            if(!empty($msg->symbol) && !empty($msg->time)) {
-                foreach($this->activeClientsConf as $sym => $clients) {
-                    if($msg->symbol == $sym && !in_array(spl_object_hash($from), $this->activeClientsConf[$sym])) {
-                        $this->activeClientsConf[$sym][] = spl_object_hash($from);
-                    }
-
-                    if($msg->symbol != $sym && $key = array_search(spl_object_hash($from), $this->activeClientsConf[$sym])) {
-                        unset($this->activeClientsConf[$sym][$key]);
-                    }
-                }
-
-                switch($msg->time) {
-                    case 'M1':
-                        $data = $this->internalData->getM1($msg->symbol);
-                        $from->send(json_encode($data));
-                        break;
-                    case 'H1':
-                        $data = $this->internalData->getH1($msg->symbol);
-                        $from->send(json_encode($data));
-                        break;
-
-                    case 'D1':
-                        $data = $this->internalData->getD1($msg->symbol);
-                        $from->send(json_encode($data));
-                        break;
-                }
-
-            }
-        }
-
-    }
-
-    function onUpdateExternalData() {
-        $dataM1 = $this->internalData->updateM1();
-        $dataH1 = $this->internalData->updateH1();
-        $dataD1 = $this->internalData->updateD1();
-
-        foreach($dataM1 as $symbol => $value) {
-            $value = json_encode($value);
-            foreach($this->activeClientsConf[$symbol] as $client) {
-                $this->clients[$client]->send($value);
-            }
-        }
-    }
-
-}
-
-$server = IoServer::factory(
-    new HttpServer(
-        new WsServer(
-            new Ws(include(__DIR__ . '/config.php'), medoo)
-        )
-    ),
-    8889
-
-);
-
-/*
- * client
- *      symbol: []
- *      time:   M1|H1|D1
- *
- * */
-
-$server->run();
+//$data = new DataSql($_conf, medoo);
 
 $fHandle = fopen('./'.basename(__FILE__, '.php').'.pid', 'w');
 fwrite($fHandle, posix_getpid());
 fclose($fHandle);
 
-//pcntl_signal(SIGUSR1, $app->onUpdateExternalData);
-pcntl_signal(SIGUSR1, function($sig){
-    echo 3333;
+$pid = file_get_contents('./'.basename(__FILE__, '.php').'.pid');
+
+pcntl_signal(SIGUSR1, function($sign) {
+    var_dump($sign);
 });
+
+function sig_handler($sig) {
+    echo 123;
+}
+
+posix_kill(posix_getpid(), SIGUSR1);
