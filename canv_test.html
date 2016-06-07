@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+    <title>canvasExample</title>
+    <meta charset='utf-8' />
+</head>
+<body>
+<canvas height='320' width='480' id='graff'>Обновите браузер</canvas>
+<script>
+    var graff   = document.getElementById("graff");
+    var ctx     = graff.getContext('2d');
+
+    /*graff.width = 1024;
+    graff.height = 400;
+    ctx.fillStyle="#d2e2ec";
+    ctx.fillRect(0, 0, graff.width, graff.height);*/
+
+    ctx.beginPath();
+    ctx.moveTo(40, 140);
+    ctx.lineTo(20, 40);
+    ctx.lineTo(60, 100);
+    ctx.lineTo(80, 20);
+    ctx.lineTo(100, 100);
+    ctx.lineTo(140, 40);
+    ctx.lineTo(120, 140);
+    ctx.stroke(); // *22
+
+
+    var nums = [
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}},
+        {"2016-06-07 10:24":{"max_bid":"4543","min_bid":"4542.5","date":"2016-06-07 10:24","openBid":"4542.75","closeBid":"4542.75"}}
+    ]
+
+    window.onload = function() {
+
+        var firstItem = _.first(nums)[Object.keys(_.first(nums))[0]];
+        var getDiffer = function(item) {
+            var maxBid = item.max_bid;
+            if(maxBid > 30) {
+                //уменьшаем
+                var step = 2;
+                var i = 0;
+                while(maxBid > 30) {
+                    maxBid /= step;
+                    i++;
+                }
+                return Math.pow(step, i);
+            } else if(maxBid < 10) {
+                //увеличиваем
+                var step = 0.5;
+                var i = 0;
+                while(maxBid < 10) {
+                    maxBid /= step;
+                    i++;
+                }
+                return step / i;
+            } else {
+                //ничего делать не нужно
+                return 1;
+            }
+        }
+
+        var test = function(item){
+            var len = _.max([item.max_bid.length, item.min_bid.length,item.openBid.length,item.closeBid.length]);
+            var changed = '';
+            for(i = 0; i<len; i++) {
+
+            }
+
+
+            return len;
+        }
+        console.log(test(firstItem));
+
+        var differ = getDiffer(firstItem);
+        /*console.log(firstItem.max_bid);
+        console.log(differ);
+        console.log(firstItem.max_bid/differ);*/
+        /*_.each(nums, function(elem){
+            var key = Object.keys(elem)[0];
+            console.log(elem[key], differ);
+        })*/
+    };
+
+</script>
+<script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js'></script>
+</body>
+</html>

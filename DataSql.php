@@ -1,9 +1,6 @@
 <?php
-declare(ticks = 1);
-error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
-ini_set('display_errors', 'on');
-require_once __DIR__ . "/vendor/autoload.php";
-$_conf = include_once(__DIR__ . '/config.php');
+
+namespace App;
 
 class DataSql {
     private $_m1;
@@ -33,7 +30,7 @@ class DataSql {
     function initDb() {
         try {
 
-            $this->_dbInstance = new medoo([
+            $this->_dbInstance = new $this->_dbConnector([
                 'database_type' => $this->_appConfig->database_type,
                 'database_name' => $this->_appConfig->database_name,
                 'server' => $this->_appConfig->server,
@@ -62,18 +59,20 @@ class DataSql {
 
 
     private function initM1() {
+
         $queryMinMax = "
-            SELECT symbol, date, max(bid) as max_bid, min(bid) as min_bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time, date FROM `external_data` group by symbol, DATE_FORMAT(date, '%Y-%m-%d %H:%i') ORDER BY date DESC
+            SELECT symbol, date, max(bid) as max_bid, min(bid) as min_bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time, date FROM `external_data` WHERE date > DATE_SUB(NOW(), INTERVAL 1 DAY) group by symbol, DATE_FORMAT(date, '%Y-%m-%d %H:%i') ORDER BY date DESC
         ";
         $resultMinMax = $this->_dbInstance->query($queryMinMax)->fetchAll();
 
         foreach($resultMinMax as $res) {
+
             $this->_m1[ $res['symbol'] ][ $res['date_time'] ] = array(
                 'max_bid' => $res['max_bid'],
                 'min_bid' => $res['min_bid'],
                 'date' => $res['date_time']
             );
-            $date = new DateTime($res['date'], new DateTimeZone('UTC'));
+            $date = new \DateTime($res['date'], new \DateTimeZone('UTC'));
             if(empty($this->_lastM1[$res['symbol']]) || $date > $this->_lastM1[$res['symbol']]) {
                 $this->_lastM1[$res['symbol']] = clone $date;
                 unset($date);
@@ -81,10 +80,10 @@ class DataSql {
         }
 
         $queryOpenBid = "
-            select symbol, bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time FROM `external_data` group by symbol, DATE_FORMAT(date, '%Y-%m-%d %H:%i') ORDER BY date ASC
+            select symbol, bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time FROM `external_data` WHERE date > DATE_SUB(NOW(), INTERVAL 1 DAY) group by symbol, DATE_FORMAT(date, '%Y-%m-%d %H:%i') ORDER BY date ASC
         ";
         $queryCloseBid = "
-            select symbol, bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time FROM `external_data` group by symbol, DATE_FORMAT(date, '%Y-%m-%d %H:%i') ORDER BY date DESC
+            select symbol, bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time FROM `external_data` WHERE date > DATE_SUB(NOW(), INTERVAL 1 DAY) group by symbol, DATE_FORMAT(date, '%Y-%m-%d %H:%i') ORDER BY date DESC
         ";
 
         $resultOpenBid = $this->_dbInstance->query($queryOpenBid)->fetchAll();
@@ -101,11 +100,16 @@ class DataSql {
             }
         }
 
+        /*foreach($this->_m1 as $key => $data) {
+            echo $key . ' - ' . count($data) . " values \n";
+        }*/
+
+        //var_dump(array_keys($this->_m1)); die();
     }
 
     private function initH1() {
         $queryMinMax = "
-            SELECT symbol, date, max(bid) as max_bid, min(bid) as min_bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time, date FROM `external_data` group by symbol, DATE_FORMAT(date, '%Y-%m-%d %H') ORDER BY date DESC
+            SELECT symbol, date, max(bid) as max_bid, min(bid) as min_bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time, date FROM `external_data` WHERE date > DATE_SUB(NOW(), INTERVAL 3 DAY) group by symbol, DATE_FORMAT(date, '%Y-%m-%d %H') ORDER BY date DESC
         ";
         $resultMinMax = $this->_dbInstance->query($queryMinMax)->fetchAll();
 
@@ -115,7 +119,7 @@ class DataSql {
                 'min_bid' => $res['min_bid'],
                 'date' => $res['date_time']
             );
-            $date = new DateTime($res['date'], new DateTimeZone('UTC'));
+            $date = new \DateTime($res['date'], new \DateTimeZone('UTC'));
             if(empty($this->_lastH1[$res['symbol']]) || $date > $this->_lastH1[$res['symbol']]) {
                 $this->_lastH1[$res['symbol']] = clone $date;
                 unset($date);
@@ -123,10 +127,10 @@ class DataSql {
         }
 
         $queryOpenBid = "
-            select symbol, bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time FROM `external_data` group by symbol, DATE_FORMAT(date, '%Y-%m-%d %H') ORDER BY date ASC
+            select symbol, bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time FROM `external_data` WHERE date > DATE_SUB(NOW(), INTERVAL 3 DAY) group by symbol, DATE_FORMAT(date, '%Y-%m-%d %H') ORDER BY date ASC
         ";
         $queryCloseBid = "
-            select symbol, bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time FROM `external_data` group by symbol, DATE_FORMAT(date, '%Y-%m-%d %H') ORDER BY date DESC
+            select symbol, bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time FROM `external_data` WHERE date > DATE_SUB(NOW(), INTERVAL 3 DAY) group by symbol, DATE_FORMAT(date, '%Y-%m-%d %H') ORDER BY date DESC
         ";
 
         $resultOpenBid = $this->_dbInstance->query($queryOpenBid)->fetchAll();
@@ -157,7 +161,7 @@ class DataSql {
                 'min_bid' => $res['min_bid'],
                 'date' => $res['date_time']
             );
-            $date = new DateTime($res['date'], new DateTimeZone('UTC'));
+            $date = new \DateTime($res['date'], new \DateTimeZone('UTC'));
             if(empty($this->_lastD1[$res['symbol']]) || $date > $this->_lastD1[$res['symbol']]) {
                 $this->_lastD1[$res['symbol']] = clone $date;
                 unset($date);
@@ -205,8 +209,8 @@ class DataSql {
                     'min_bid' => $res['min_bid'],
                     'date' => $res['date_time']
                 );
-                $dt = new DateTime($res['date'], new DateTimeZone('UTC'));
-                if(empty($this->_lastM1[$res['symbol']]) || $date > $this->_lastM1[$res['symbol']]) {
+                $dt = new \DateTime($res['date'], new \DateTimeZone('UTC'));
+                if(empty($this->_lastM1[$res['symbol']]) || $dt > $this->_lastM1[$res['symbol']]) {
                     $this->_lastM1[$res['symbol']] = clone $dt;
                     unset($dt);
                 }
@@ -229,7 +233,7 @@ class DataSql {
             $resultOpenBid = $this->_dbInstance->query($queryOpenBid)->fetchAll();
             foreach($resultOpenBid as $res) {
                 if(!empty($_m1[ $res['symbol'] ][ $res['date_time'] ])) {
-                    $this->_m1[ $res['symbol'] ][ $res['date_time'] ][ 'openBid' ] = $res['bid'];
+                    $_m1[ $res['symbol'] ][ $res['date_time'] ][ 'openBid' ] = $res['bid'];
                 }
             }
 
@@ -241,13 +245,20 @@ class DataSql {
             }
 
         }
-        $this->_m1 = array_merge($this->_m1, $_m1);
+        foreach($_m1 as $symbol => $data) {
+            if(!empty($this->_m1[$symbol])) {
+                //соеденит
+                $this->_m1[$symbol] = array_merge($this->_m1[$symbol], $_m1[$symbol]);
+            } else {
+                //присовить
+                $this->_m1[$symbol] = $_m1[$symbol];
+            }
+        }
         return $_m1;
     }
 
     function updateH1() {
         foreach($this->_lastH1 as $sym => $date) {
-
             $queryMinMax = "
                 SELECT symbol, date, max(bid) as max_bid, min(bid) as min_bid, DATE_FORMAT(date, '%Y-%m-%d %H:%i') as date_time, date
                 FROM `external_data`
@@ -263,7 +274,7 @@ class DataSql {
                     'min_bid' => $res['min_bid'],
                     'date' => $res['date_time']
                 );
-                $dt = new DateTime($res['date'], new DateTimeZone('UTC'));
+                $dt = new \DateTime($res['date'], new \DateTimeZone('UTC'));
                 if(empty($this->_lastH1[$res['symbol']]) || $dt > $this->_lastH1[$res['symbol']]) {
                     $this->_lastH1[$res['symbol']] = clone $date;
                     unset($dt);
@@ -300,7 +311,15 @@ class DataSql {
 
         }
 
-        $this->_lastH1 = array_merge($this->_lastH1, $_h1);
+        foreach($_h1 as $symbol => $data) {
+            if(!empty($this->_h1[$symbol])) {
+                //соеденит
+                $this->_h1[$symbol] = array_merge($this->_h1[$symbol], $_h1[$symbol]);
+            } else {
+                //присовить
+                $this->_h1[$symbol] = $_h1[$symbol];
+            }
+        }
         return $_h1;
     }
 
@@ -322,7 +341,7 @@ class DataSql {
                     'min_bid' => $res['min_bid'],
                     'date' => $res['date_time']
                 );
-                $dt = new DateTime($res['date'], new DateTimeZone('UTC'));
+                $dt = new \DateTime($res['date'], new \DateTimeZone('UTC'));
                 if(empty($this->_lastD1[$res['symbol']]) || $dt > $this->_lastD1[$res['symbol']]) {
                     $this->_lastD1[$res['symbol']] = clone $date;
                     unset($dt);
@@ -358,7 +377,16 @@ class DataSql {
             }
 
         }
-        $this->_d1 = array_merge($this->_d1, $_d1);
+
+        foreach($_d1 as $symbol => $data) {
+            if(!empty($this->_d1[$symbol])) {
+                //соеденит
+                $this->_d1[$symbol] = array_merge($this->_d1[$symbol], $_d1[$symbol]);
+            } else {
+                //присовить
+                $this->_d1[$symbol] = $_d1[$symbol];
+            }
+        }
         return $_d1;
     }
 
@@ -376,8 +404,8 @@ class DataSql {
 
         foreach($this->_h1 as $sym => $tick) {
             foreach($tick as $date => $value) {
-                $dt = new DateTime($date, new DateTimeZone('UTC'));
-                $dt->add(new DateTime('P3D'));
+                $dt = new \DateTime($date, new \DateTimeZone('UTC'));
+                $dt->add(new \DateTime('P3D'));
                 if($dt < $this->_lastH1) {
                     unset($this->_h1[$sym][$date]);
                 }
@@ -386,21 +414,3 @@ class DataSql {
         }
     }
 }
-
-//$data = new DataSql($_conf, medoo);
-
-$fHandle = fopen('./'.basename(__FILE__, '.php').'.pid', 'w');
-fwrite($fHandle, posix_getpid());
-fclose($fHandle);
-
-$pid = file_get_contents('./'.basename(__FILE__, '.php').'.pid');
-
-pcntl_signal(SIGUSR1, function($sign) {
-    var_dump($sign);
-});
-
-function sig_handler($sig) {
-    echo 123;
-}
-
-posix_kill(posix_getpid(), SIGUSR1);

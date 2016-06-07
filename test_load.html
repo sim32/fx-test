@@ -1,16 +1,16 @@
 <input type="text" id="input" placeholder="Message…" />
-        <br />
-        example:
-        <br />
-        {"symbol":"NQ", "time":"M1"}<br />
-        {"symbol":"BRN", "time":"H1"}<br />
-        {"symbol":"XAUUSD", "time":"D1"}<br />
+<br />
+example:
+<br />
+{"symbol":"NQ", "time":"M1"}<br />
+{"symbol":"BRN", "time":"H1"}<br />
+{"symbol":"XAUUSD", "time":"D1"}<br />
 <hr />
 <pre id="output"></pre>
 
 <script>
     var host   = 'ws://10.66.1.109:8889';
-    var socket = null;
+    /*var socket = null;
     var input  = document.getElementById('input');
     var output = document.getElementById('output');
     var print  = function (message) {
@@ -39,9 +39,29 @@
 
             return;
         }
-    });
+    });*/
+    var sockets = [];
+    function addClients() {
+        for(i = 0; i < 100; i++) {
+            setTimeout(function() {
+                sockets.push(createClient('{"symbol":"NQ", "time":"M1"}'))
+                console.log(i);
+            }, 1000);
+        }
+    }
 
-    try {
+
+    function createClient(msg) {
+        var socket = new WebSocket(host);
+        socket.onopen = function () {
+            socket.send(msg);
+        };
+        return socket;
+    }
+
+
+
+    /*try {
         socket = new WebSocket(host);
         socket.onopen = function () {
             print('connection is opened');
@@ -62,5 +82,5 @@
         };
     } catch (e) {
         console.log(e);
-    }
+    }*/
 </script>
