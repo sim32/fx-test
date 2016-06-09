@@ -7,9 +7,9 @@
         }
     ],
     "require": {
-      "hoa/websocket": "^3.16",
         "cboden/ratchet": "^0.3.5",
-        "catfan/Medoo": "^1.0"
+        "catfan/Medoo": "^1.0",
+        "react/zmq": "^0.3.0"
     }
 
 }

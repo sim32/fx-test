@@ -5,8 +5,9 @@ return (OBJECT)[
 
     'database_type' => 'mysql',
     'database_name' => 'fx_test',
+    //'server' => '10.66.1.129',
     'server' => 'localhost',
-    'username' => 'fx_test',
-    'password' => 'fx_test',
+    'username' => 'root',
+    'password' => '',
     'charset' => 'utf8',
 ];

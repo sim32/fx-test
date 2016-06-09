@@ -1,7 +1,8 @@
 <?php
-error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
-ini_set('display_errors', 'on');
+//error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
+//ini_set('display_errors', 'on');
 require_once __DIR__ . "/vendor/autoload.php";
+use WebSocket\Client;
 $_conf = include_once(__DIR__ . '/config.php');
 
 $childPid = pcntl_fork();
@@ -10,12 +11,14 @@ $childPid = pcntl_fork();
  * 0 - Дочернему
  * pid - родителю
  * */
+
+
 if ((bool)$childPid) {
 
     $fHandle = fopen('./'.basename(__FILE__, '.php').'.pid', 'w');
     fwrite($fHandle, $childPid);
     fclose($fHandle);
-    echo $childPid;
+    echo $childPid . "\n";
     exit;
 }
 
@@ -35,6 +38,11 @@ $database = false;
 
 posix_setsid();
 $stopServer = false;
+
+$loop = React\EventLoop\Factory::create();
+
+//$context = new React\ZMQ\Context($loop);
+
 
 while (!$stopServer && ($out = socket_read($socket, 1024, PHP_NORMAL_READ)) ) {
 
@@ -56,11 +64,15 @@ while (!$stopServer && ($out = socket_read($socket, 1024, PHP_NORMAL_READ)) ) {
             "date" => $date
         ]);
 
-        $pidWS = file_get_contents('./ws.pid');
-        posix_kill($pidWS, SIGUSR1);
+        try {
+            $client = new Client("ws://127.0.0.1:8889");
+            $client->send("update");
+        } catch(Exeption $e) {
+
+        }
 
     } catch (Exception $e) {
-        var_dump($e);
+        //var_dump($e);
     }
 
     if(($stopServer = file_exists(__DIR__ . '/stop')) ) {
